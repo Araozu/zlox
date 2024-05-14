@@ -5,6 +5,7 @@ const ValueArray = value.ValueArray;
 
 pub const OpCode = enum(u8) {
     OP_RETURN,
+    OP_CONSTANT,
 };
 
 pub const Chunk = struct {
@@ -62,6 +63,7 @@ pub const Chunk = struct {
         const instruction = self.code[offset];
         switch (instruction) {
             @intFromEnum(OpCode.OP_RETURN) => return simple_instruction("OP_RETURN", offset),
+            @intFromEnum(OpCode.OP_CONSTANT) => return self.constant_instruction("OP_CONSTANT", offset),
             else => {
                 print("unknown opcode {d}\n", .{instruction});
                 return offset + 1;
@@ -78,11 +80,24 @@ pub const Chunk = struct {
         self.allocator.free(self.code);
         self.constants.deinit();
     }
+    fn constant_instruction(self: *Chunk, comptime name: []const u8, offset: usize) usize {
+        const constant_addr = self.code[offset + 1];
+        const constant_value = self.constants.values[constant_addr];
+
+        print("{s} ", .{name});
+        print_value(constant_value);
+        print("\n", .{});
+        return offset + 2;
+    }
 };
 
 fn simple_instruction(comptime name: []const u8, offset: usize) usize {
     print("{s}\n", .{name});
     return offset + 1;
+}
+
+fn print_value(v: value.Value) void {
+    print("{d}", .{v});
 }
 
 inline fn grow_capacity(old: usize) usize {

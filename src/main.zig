@@ -1,5 +1,6 @@
 const std = @import("std");
 const chunk = @import("./chunk.zig");
+const OpCode = chunk.OpCode;
 
 pub fn main() !void {
     // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
@@ -12,9 +13,11 @@ pub fn main() !void {
     defer c.deinit();
 
     try c.write(@intFromEnum(chunk.OpCode.OP_RETURN));
-    try c.write(@intFromEnum(chunk.OpCode.OP_RETURN));
 
-    _ = try c.add_constant(0.0);
+    const constant_idx = try c.add_constant(1.2);
+    try c.write(@intFromEnum(OpCode.OP_CONSTANT));
+    try c.write(@truncate(constant_idx));
+
     c.dissasemble_chunk("test chunk");
 }
 
