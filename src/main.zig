@@ -11,8 +11,9 @@ pub fn main() !void {
     var c = try chunk.Chunk.init(alloc);
     defer c.deinit();
 
-    try c.write_chunck('a');
-    try c.free_chunck();
+    try c.write_chunck(@intFromEnum(chunk.OpCode.OP_RETURN));
+    try c.write_chunck(@intFromEnum(chunk.OpCode.OP_RETURN));
+    c.dissasemble_chunk("test chunk");
 }
 
 test "chunk test" {

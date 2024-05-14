@@ -1,6 +1,7 @@
 const std = @import("std");
+const print = std.debug.print;
 
-const OpCode = enum {
+pub const OpCode = enum(u8) {
     OP_RETURN,
 };
 
@@ -38,7 +39,34 @@ pub const Chunk = struct {
         self.code = try self.allocator.realloc(self.code, 0);
     }
 
+    pub fn dissasemble_chunk(self: *Chunk, name: []const u8) void {
+        print("== {s} ==\n", .{name});
+
+        var offset: usize = 0;
+        while (offset < self.count) {
+            offset = dissasemble_instruction(self, offset);
+        }
+    }
+
+    fn dissasemble_instruction(self: *Chunk, offset: usize) usize {
+        print("{d:0>4} ", .{offset});
+
+        const instruction = self.code[offset];
+        switch (instruction) {
+            @intFromEnum(OpCode.OP_RETURN) => return simple_instruction("OP_RETURN", offset),
+            else => {
+                print("unknown opcode {d}\n", .{instruction});
+                return offset + 1;
+            },
+        }
+    }
+
     pub fn deinit(self: Chunk) void {
         self.allocator.free(self.code);
     }
 };
+
+fn simple_instruction(comptime name: []const u8, offset: usize) usize {
+    print("{s}\n", .{name});
+    return offset + 1;
+}
