@@ -10,6 +10,7 @@ pub const OpCode = enum(u8) {
 
 pub const Chunk = struct {
     code: []u8,
+    lines: []u32,
     count: usize,
     capacity: usize,
     constants: ValueArray,
@@ -22,28 +23,24 @@ pub const Chunk = struct {
             .capacity = 0,
             .allocator = allocator,
             .code = try allocator.alloc(u8, 0),
+            .lines = try allocator.alloc(u32, 0),
             .constants = try ValueArray.init(allocator),
         };
     }
 
     /// Writes a byte to this chunk
-    pub fn write(self: *Chunk, byte: u8) !void {
+    pub fn write(self: *Chunk, byte: u8, line: u32) !void {
         // If the code slice is full
         if (self.count == self.capacity) {
             const old_capacity = self.capacity;
             self.capacity = grow_capacity(old_capacity);
             self.code = try self.allocator.realloc(self.code, self.capacity);
+            self.lines = try self.allocator.realloc(self.lines, self.capacity);
         }
 
         self.code[self.count] = byte;
+        self.lines[self.count] = line;
         self.count += 1;
-    }
-
-    /// Reinitializes the state of the chunk.
-    pub fn free_chunck(self: *Chunk) !void {
-        self.count = 0;
-        self.capacity = 0;
-        self.code = try self.allocator.realloc(self.code, 0);
     }
 
     /// Prints the current state of the chunk to stderr
@@ -59,6 +56,13 @@ pub const Chunk = struct {
     /// Prints the value of a single instruction
     fn dissasemble_instruction(self: *Chunk, offset: usize) usize {
         print("{d:0>4} ", .{offset});
+
+        // Print the line number
+        if (offset > 0 and self.lines[offset] == self.lines[offset - 1]) {
+            print("   | ", .{});
+        } else {
+            print("{d: >4} ", .{self.lines[offset]});
+        }
 
         const instruction = self.code[offset];
         switch (instruction) {
@@ -78,15 +82,17 @@ pub const Chunk = struct {
     /// Destroys this chunk
     pub fn deinit(self: Chunk) void {
         self.allocator.free(self.code);
+        self.allocator.free(self.lines);
         self.constants.deinit();
     }
+
     fn constant_instruction(self: *Chunk, comptime name: []const u8, offset: usize) usize {
         const constant_addr = self.code[offset + 1];
         const constant_value = self.constants.values[constant_addr];
 
-        print("{s} ", .{name});
+        print("{s: <16} {d: >4} '", .{ name, constant_addr });
         print_value(constant_value);
-        print("\n", .{});
+        print("'\n", .{});
         return offset + 2;
     }
 };
