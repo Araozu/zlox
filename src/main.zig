@@ -1,11 +1,15 @@
 const std = @import("std");
+const config = @import("config");
+
 const chunk = @import("./chunk.zig");
 const OpCode = chunk.OpCode;
 const VM = @import("./vm.zig").VM;
 
 pub fn main() !void {
     // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+    if (config.tracing) {
+        std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+    }
 
     var mem = std.heap.GeneralPurposeAllocator(.{}){};
     const alloc = mem.allocator();

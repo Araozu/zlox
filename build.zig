@@ -36,6 +36,14 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    // Declare an option to build the program with debug statements
+    // (crafting interpreters: A virtual machine: execution tracing)
+    const executionTracing = b.option(bool, "tracing", "enable execution tracing") orelse false;
+    const options = b.addOptions();
+    options.addOption(bool, "tracing", executionTracing);
+
+    exe.root_module.addOptions("config", options);
+
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
     // step when running `zig build`).
