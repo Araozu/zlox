@@ -55,6 +55,7 @@ pub const Chunk = struct {
 
     /// Prints the value of a single instruction
     fn dissasemble_instruction(self: *Chunk, offset: usize) usize {
+        // Print the instruction offset
         print("{d:0>4} ", .{offset});
 
         // Print the line number
@@ -65,7 +66,7 @@ pub const Chunk = struct {
         }
 
         const instruction = self.code[offset];
-        switch (instruction) {
+        switch (self.code[offset]) {
             @intFromEnum(OpCode.OP_RETURN) => return simple_instruction("OP_RETURN", offset),
             @intFromEnum(OpCode.OP_CONSTANT) => return self.constant_instruction("OP_CONSTANT", offset),
             else => {
@@ -102,7 +103,7 @@ fn simple_instruction(comptime name: []const u8, offset: usize) usize {
     return offset + 1;
 }
 
-fn print_value(v: value.Value) void {
+pub fn print_value(v: value.Value) void {
     print("{d}", .{v});
 }
 
