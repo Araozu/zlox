@@ -4,6 +4,8 @@ const Chunk = chunk_mod.Chunk;
 const OpCode = chunk_mod.OpCode;
 const print = std.debug.print;
 
+const tracing = @import("config").tracing;
+
 const InterpretResult = enum {
     Ok,
     CompileError,
@@ -28,6 +30,12 @@ pub const VM = struct {
     // Executes the instructions in the bytecode
     pub fn run(self: *VM) InterpretResult {
         while (true) {
+            if (tracing) {
+                // dissasemble & print the current instruction
+                const offset: usize = @intFromPtr(self.ip) - @intFromPtr(self.chunk.code.ptr);
+                _ = self.chunk.dissasemble_instruction(offset);
+            }
+
             const next = self.ip[0];
             self.ip += 1;
             switch (next) {

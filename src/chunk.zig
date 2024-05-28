@@ -54,7 +54,7 @@ pub const Chunk = struct {
     }
 
     /// Prints the value of a single instruction
-    fn dissasemble_instruction(self: *Chunk, offset: usize) usize {
+    pub fn dissasemble_instruction(self: *Chunk, offset: usize) usize {
         // Print the instruction offset
         print("{d:0>4} ", .{offset});
 
